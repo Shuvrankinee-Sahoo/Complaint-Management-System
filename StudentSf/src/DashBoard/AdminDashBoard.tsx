@@ -10,7 +10,6 @@ import {
   KeyRound,
   User,
   Trash2,
-
 } from "lucide-react";
 
 // Interfaces
@@ -50,7 +49,9 @@ function LoaderOverlay({ show }: { show: boolean }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/20 backdrop-blur-0 transition-opacity duration-300 animate-fadeIn">
       <div className="flex flex-col items-center">
         <div className="loader mb-4" />
-        <span className="text-xl font-semibold text-green-700 animate-pulse">Loading...</span>
+        <span className="text-xl font-semibold text-green-700 animate-pulse">
+          Loading...
+        </span>
       </div>
       <style>{`
         .loader {
@@ -135,7 +136,9 @@ const AdminDashboard: React.FC = () => {
   });
 
   const [view, setView] =
-    useState<"dashboard" | "complaints" | "users" | "profile" | "changePassword">("dashboard");
+    useState<"dashboard" | "complaints" | "users" | "profile" | "changePassword">(
+      "dashboard"
+    );
 
   // Modal states
   const [editProfileModal, setEditProfileModal] = useState(false);
@@ -150,8 +153,13 @@ const AdminDashboard: React.FC = () => {
 
   // Complaint editing
   const [editComplaintModal, setEditComplaintModal] = useState(false);
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
-  const [complaintUpdate, setComplaintUpdate] = useState<{status: string; response: string}>({
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
+    null
+  );
+  const [complaintUpdate, setComplaintUpdate] = useState<{
+    status: string;
+    response: string;
+  }>({
     status: "",
     response: "",
   });
@@ -159,6 +167,14 @@ const AdminDashboard: React.FC = () => {
   // Loader and overlay
   const [isLoadingOverlay, setIsLoadingOverlay] = useState(false);
   const [overlayMessage, setOverlayMessage] = useState<string | null>(null);
+
+  // Filter for complaints by status
+  const [
+    complaintStatusFilter,
+    setComplaintStatusFilter,
+  ] = useState<
+    "All" | "Pending" | "In Progress" | "Resolved" | "Rejected"
+  >("All");
 
   useEffect(() => {
     fetchStats();
@@ -169,7 +185,9 @@ const AdminDashboard: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch("http://localhost:8080/admin/stats", { credentials: "include" });
+      const res = await fetch("http://localhost:8080/admin/stats", {
+        credentials: "include",
+      });
       if (res.ok) {
         const data: Stats = await res.json();
         setStats(data);
@@ -181,7 +199,9 @@ const AdminDashboard: React.FC = () => {
 
   const fetchComplaints = async () => {
     try {
-      const res = await fetch("http://localhost:8080/admin/complaints", { credentials: "include" });
+      const res = await fetch("http://localhost:8080/admin/complaints", {
+        credentials: "include",
+      });
       if (res.ok) {
         const data: Complaint[] = await res.json();
         setComplaints(data);
@@ -193,7 +213,9 @@ const AdminDashboard: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch("http://localhost:8080/admin/users", { credentials: "include" });
+      const res = await fetch("http://localhost:8080/admin/users", {
+        credentials: "include",
+      });
       if (res.ok) {
         const data: UserProfile[] = await res.json();
         setUsers(data);
@@ -205,7 +227,9 @@ const AdminDashboard: React.FC = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch("http://localhost:8080/user/profile", { credentials: "include" });
+      const res = await fetch("http://localhost:8080/user/profile", {
+        credentials: "include",
+      });
       if (res.ok) {
         const data: AdminProfile = await res.json();
         setProfile(data);
@@ -216,60 +240,56 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-const handleComplaintEdit = (complaint: Complaint) => {
-  setSelectedComplaint(complaint);
-  setComplaintUpdate({
-    status: complaint.status,
-    response: complaint.response || "",
-  });
-  setEditComplaintModal(true);
-};
-
-
-const handleUpdateComplaint = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (!selectedComplaint) return;
-
-  setOverlayMessage("Updating complaint...");
-
-  try {
-    const res = await fetch("http://localhost:8080/admin/complaints/update", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        id: selectedComplaint.id,   // REQUIRED BY BACKEND
-        status: complaintUpdate.status,
-        response: complaintUpdate.response,
-      }),
+  const handleComplaintEdit = (complaint: Complaint) => {
+    setSelectedComplaint(complaint);
+    setComplaintUpdate({
+      status: complaint.status,
+      response: complaint.response || "",
     });
+    setEditComplaintModal(true);
+  };
 
-    if (res.ok) {
-      setOverlayMessage("Complaint updated successfully!");
+  const handleUpdateComplaint = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-      setTimeout(() => {
+    if (!selectedComplaint) return;
+
+    setOverlayMessage("Updating complaint...");
+
+    try {
+      const res = await fetch("http://localhost:8080/admin/complaints/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          id: selectedComplaint.id, // REQUIRED BY BACKEND
+          status: complaintUpdate.status,
+          response: complaintUpdate.response,
+        }),
+      });
+
+      if (res.ok) {
+        setOverlayMessage("Complaint updated successfully!");
+
+        setTimeout(() => {
+          setOverlayMessage(null);
+          setEditComplaintModal(false);
+          fetchComplaints();
+          fetchStats();
+        }, 1700);
+      } else {
+        alert("Failed to update complaint.");
         setOverlayMessage(null);
-        setEditComplaintModal(false);
-        fetchComplaints();
-        fetchStats();
-      }, 1700);
-    } else {
-      alert("Failed to update complaint.");
+      }
+    } catch (err) {
+      console.error(err);
       setOverlayMessage(null);
     }
-  } catch (err) {
-    console.error(err);
-    setOverlayMessage(null);
-  }
-};
-
-
-
+  };
 
   // Delete user
   const handleDeleteUser = async (regNo: string) => {
-    if (!window.confirm('Delete this user?')) return;
+    if (!window.confirm("Delete this user?")) return;
     setOverlayMessage("Deleting user...");
     try {
       const res = await fetch(`http://localhost:8080/admin/users/${regNo}`, {
@@ -321,13 +341,16 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
   };
 
   // Change password
-   const handleChangePassword = async (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setOverlayMessage("Changing password...");
-    if (!passwordFields.newPassword || passwordFields.newPassword !== passwordFields.confirm) {
-        alert("Passwords do not match or empty.");
-        setOverlayMessage(null);
-        return;
+    if (
+      !passwordFields.newPassword ||
+      passwordFields.newPassword !== passwordFields.confirm
+    ) {
+      alert("Passwords do not match or empty.");
+      setOverlayMessage(null);
+      return;
     }
     try {
       const res = await fetch("http://localhost:8080/user/changePassword", {
@@ -360,7 +383,6 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
     }
   };
 
-
   // Sidebar cards green
   const statCards = [
     { title: "Total Complaints", value: stats.total, icon: FileText, color: "text-green-600" },
@@ -382,21 +404,17 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
   return (
     <div className="relative min-h-screen flex bg-gray-50">
       <LoaderOverlay show={isLoadingOverlay} />
-      <OverlayMessage message={(!isLoadingOverlay && overlayMessage) ? overlayMessage : null} />
+      <OverlayMessage message={!isLoadingOverlay && overlayMessage ? overlayMessage : null} />
 
       {/* Complaint Edit Modal */}
-      <Modal
-        open={editComplaintModal}
-        onClose={() => setEditComplaintModal(false)}
-        title="Update Complaint"
-      >
+      <Modal open={editComplaintModal} onClose={() => setEditComplaintModal(false)} title="Update Complaint">
         {selectedComplaint && (
           <form onSubmit={handleUpdateComplaint} className="space-y-4">
             <div>
               <label className="block font-medium mb-1">Status</label>
               <select
                 value={complaintUpdate.status}
-                onChange={e => setComplaintUpdate({...complaintUpdate, status: e.target.value})}
+                onChange={(e) => setComplaintUpdate({ ...complaintUpdate, status: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg p-3 outline-none"
                 required
               >
@@ -410,7 +428,7 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
               <label className="block font-medium mb-1">Response</label>
               <textarea
                 value={complaintUpdate.response}
-                onChange={e => setComplaintUpdate({...complaintUpdate, response: e.target.value})}
+                onChange={(e) => setComplaintUpdate({ ...complaintUpdate, response: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg p-3 resize-none outline-none"
                 rows={3}
                 required
@@ -436,19 +454,14 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
       </Modal>
 
       {/* Edit Profile Modal */}
-      <Modal
-        open={editProfileModal}
-        onClose={() => setEditProfileModal(false)}
-        title="Edit Profile"
-      >
+      <Modal open={editProfileModal} onClose={() => setEditProfileModal(false)} title="Edit Profile">
         <form onSubmit={handleProfileUpdate} className="space-y-4">
           <div>
             <label className="block font-medium mb-1">Full Name</label>
             <input
               type="text"
               value={tempProfile.fullName}
-              onChange={e =>
-                setTempProfile({...tempProfile, fullName: e.target.value})}
+              onChange={(e) => setTempProfile({ ...tempProfile, fullName: e.target.value })}
               className="w-full border border-gray-300 rounded-lg p-3 outline-none"
               required
             />
@@ -458,8 +471,7 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
             <input
               type="email"
               value={tempProfile.email}
-              onChange={e =>
-                setTempProfile({...tempProfile, email: e.target.value})}
+              onChange={(e) => setTempProfile({ ...tempProfile, email: e.target.value })}
               className="w-full border border-gray-300 rounded-lg p-3 outline-none"
               required
             />
@@ -469,7 +481,7 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
             <input
               type="text"
               value={tempProfile.regNo}
-              onChange={e => setTempProfile({...tempProfile, regNo: e.target.value})}
+              onChange={(e) => setTempProfile({ ...tempProfile, regNo: e.target.value })}
               className="w-full border border-gray-300 rounded-lg p-3 outline-none"
               required
             />
@@ -493,19 +505,16 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
       </Modal>
 
       {/* Change Password Modal */}
-      <Modal
-        open={changePasswordModal}
-        onClose={() => setChangePasswordModal(false)}
-        title="Change Password"
-      >
+      <Modal open={changePasswordModal} onClose={() => setChangePasswordModal(false)} title="Change Password">
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>
             <label className="block font-medium mb-1">Current Password</label>
             <input
               type="password"
               value={passwordFields.currentPassword}
-              onChange={e =>
-                setPasswordFields({...passwordFields, currentPassword: e.target.value})}
+              onChange={(e) =>
+                setPasswordFields({ ...passwordFields, currentPassword: e.target.value })
+              }
               className="w-full border border-gray-300 rounded-lg p-3 outline-none"
               required
             />
@@ -515,8 +524,7 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
             <input
               type="password"
               value={passwordFields.newPassword}
-              onChange={e =>
-                setPasswordFields({...passwordFields, newPassword: e.target.value})}
+              onChange={(e) => setPasswordFields({ ...passwordFields, newPassword: e.target.value })}
               className="w-full border border-gray-300 rounded-lg p-3 outline-none"
               required
             />
@@ -526,8 +534,7 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
             <input
               type="password"
               value={passwordFields.confirm}
-              onChange={e =>
-                setPasswordFields({...passwordFields, confirm: e.target.value})}
+              onChange={(e) => setPasswordFields({ ...passwordFields, confirm: e.target.value })}
               className="w-full border border-gray-300 rounded-lg p-3 outline-none"
               required
             />
@@ -552,23 +559,19 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
 
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r p-5 flex flex-col z-10">
-        <h1 className="text-xl font-bold text-green-700 mb-8">
-          Admin Dashboard
-        </h1>
+        <h1 className="text-xl font-bold text-green-700 mb-8">Admin Dashboard</h1>
         <nav className="flex flex-col gap-3">
           {[
             { label: "Dashboard", key: "dashboard", icon: FileText },
             { label: "Complaints", key: "complaints", icon: CheckCircle },
             { label: "Users", key: "users", icon: User },
             { label: "Profile", key: "profile", icon: Edit },
-          ].map(v => (
+          ].map((v) => (
             <button
               key={v.key}
               onClick={() => handleViewChange(v.key as typeof view)}
               className={`flex items-center gap-2 text-left px-4 py-2 rounded-lg font-medium transition ${
-                view === v.key
-                  ? "bg-green-600 text-white shadow"
-                  : "hover:bg-green-50 hover:text-green-700"
+                view === v.key ? "bg-green-600 text-white shadow" : "hover:bg-green-50 hover:text-green-700"
               }`}
             >
               <v.icon className="w-5 h-5" />
@@ -581,13 +584,9 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         <header className="bg-white shadow flex items-center justify-between px-8 py-4 z-10">
-          <h2 className="text-lg font-semibold text-green-700">
-            Campus Admin Panel
-          </h2>
+          <h2 className="text-lg font-semibold text-green-700">Campus Admin Panel</h2>
           <div className="flex items-center gap-4">
-            <span className="font-medium text-gray-700">
-              {profile.fullName || "Admin"}
-            </span>
+            <span className="font-medium text-gray-700">{profile.fullName || "Admin"}</span>
             <button
               onClick={() => {
                 if (!window.confirm("Are you sure you want to logout?")) return;
@@ -603,20 +602,16 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
         </header>
         <div
           className={`flex-1 p-8 overflow-y-auto transition-filter duration-300 ${
-            (overlayMessage && !isLoadingOverlay) ? "blur-sm pointer-events-none" : ""
+            overlayMessage && !isLoadingOverlay ? "blur-sm pointer-events-none" : ""
           }`}
         >
           {/* Dashboard */}
           {view === "dashboard" && (
             <div>
-              <h1 className="text-3xl font-bold mb-2">
-                Welcome, {profile.fullName || "Admin"}!
-              </h1>
-              <p className="text-gray-500 mb-6">
-                Overview of your system stats.
-              </p>
+              <h1 className="text-3xl font-bold mb-2">Welcome, {profile.fullName || "Admin"}!</h1>
+              <p className="text-gray-500 mb-6">Overview of your system stats.</p>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-8">
-                {statCards.map(stat => {
+                {statCards.map((stat) => {
                   const Icon = stat.icon;
                   return (
                     <div
@@ -638,46 +633,85 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
           {/* Complaints Table */}
           {view === "complaints" && (
             <div className="bg-white p-6 rounded-xl shadow">
-              <h2 className="text-2xl font-semibold mb-4 text-green-700">
-                All Complaints
-              </h2>
-              {complaints.length === 0 ? (
-                <p className="text-gray-500">No complaints found.</p>
+              <h2 className="text-2xl font-semibold mb-4 text-green-700">All Complaints</h2>
+              {/* Status filter dropdown */}
+              <div className="mb-4 flex items-center justify-between">
+                <label className="font-medium text-gray-700">
+                  Filter by Status:{" "}
+                  <select
+                    value={complaintStatusFilter}
+                    onChange={(e) =>
+                      setComplaintStatusFilter(e.target.value as
+                        | "All"
+                        | "Pending"
+                        | "In Progress"
+                        | "Resolved"
+                        | "Rejected")
+                    }
+                    className="ml-2 border border-gray-300 rounded-lg p-2"
+                  >
+                    <option value="All">All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </label>
+              </div>
+
+              {complaints.filter(
+                (c) =>
+                  complaintStatusFilter === "All" || c.status === complaintStatusFilter
+              ).length === 0 ? (
+                <p className="text-gray-500">
+                  No complaints found
+                  {complaintStatusFilter !== "All" ? ` for ${complaintStatusFilter}` : ""}.
+                </p>
               ) : (
                 <div className="space-y-4">
-                  {complaints.map(c => (
-                    <div
-                      key={c.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:bg-green-50 transition"
-                    >
-                      <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold">{c.title}</h3>
-                        <span
-                          className={`text-sm px-3 py-1 rounded-full ${
-                            c.status === "Pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : c.status === "Resolved"
-                              ? "bg-green-100 text-green-700"
-                              : c.status === "Rejected"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {c.status}
-                        </span>
-                        <button
-                          className="p-2 text-green-700 hover:text-green-900"
-                          onClick={() => handleComplaintEdit(c)}
-                          title="Edit"
-                        >
-                          <Edit className="w-5 h-5" />
-                        </button>
+                  {complaints
+                    .filter(
+                      (c) =>
+                        complaintStatusFilter === "All" || c.status === complaintStatusFilter
+                    )
+                    .map((c) => (
+                      <div
+                        key={c.id}
+                        className="border border-gray-200 rounded-lg p-4 hover:bg-green-50 transition"
+                      >
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-lg font-semibold">{c.title}</h3>
+                          <span
+                            className={`text-sm px-3 py-1 rounded-full ${
+                              c.status === "Pending"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : c.status === "Resolved"
+                                ? "bg-green-100 text-green-700"
+                                : c.status === "Rejected"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-green-100 text-green-700"
+                            }`}
+                          >
+                            {c.status}
+                          </span>
+                          <button
+                            className="p-2 text-green-700 hover:text-green-900"
+                            onClick={() => handleComplaintEdit(c)}
+                            title="Edit"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                        </div>
+                        <p className="text-gray-600">
+                          <strong>Response:</strong>{" "}
+                          {c.response && c.response.trim() ? c.response : "N/A"}
+                        </p>
+                        <p className="text-gray-600">
+                          <strong>Subject:</strong> {c.subject}
+                        </p>
+                        <p className="text-gray-500 text-sm mt-2">{c.description}</p>
                       </div>
-                      <p className="text-gray-600"><strong>Response:</strong> {c.response && c.response.trim() ? c.response : "N/A"}</p>
-                      <p className="text-gray-600"><strong>Subject:</strong> {c.subject}</p>
-                      <p className="text-gray-500 text-sm mt-2">{c.description}</p>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
             </div>
@@ -686,9 +720,7 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
           {/* Users Table */}
           {view === "users" && (
             <div className="bg-white p-6 rounded-xl shadow">
-              <h2 className="text-2xl font-semibold mb-4 text-green-700">
-                All Users
-              </h2>
+              <h2 className="text-2xl font-semibold mb-4 text-green-700">All Users</h2>
               {users.length === 0 ? (
                 <p className="text-gray-500">No users found.</p>
               ) : (
@@ -702,7 +734,7 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map(u => (
+                    {users.map((u) => (
                       <tr key={u.regNo} className="border-t">
                         <td className="py-2 px-4">{u.fullName}</td>
                         <td className="py-2 px-4">{u.email}</td>
@@ -758,7 +790,6 @@ const handleUpdateComplaint = async (e: React.FormEvent) => {
               </div>
             </div>
           )}
-
         </div>
       </main>
     </div>

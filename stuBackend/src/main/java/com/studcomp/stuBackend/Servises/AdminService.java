@@ -49,7 +49,7 @@ public class AdminService {
             return null;
         }
 
-        return complaintsRepo.findAll();
+        return complaintsRepo.findAllByOrderByDateDesc();
     }
 
     public String updateComplaint(AdminUpdateComplaintDto dto, String adminEmail) {
@@ -72,10 +72,10 @@ public class AdminService {
         StatsDto dto = new StatsDto();
 
         dto.setTotal(complaintsRepo.count());
-        dto.setPending(complaintsRepo.countByStatus("PENDING"));
-        dto.setIn_progress(complaintsRepo.countByStatus("IN_PROGRESS"));
-        dto.setResolved(complaintsRepo.countByStatus("RESOLVED"));
-        dto.setRejected(complaintsRepo.countByStatus("REJECTED"));
+        dto.setPending(complaintsRepo.countByStatus("Pending"));
+        dto.setIn_progress(complaintsRepo.countByStatus("In Progress"));
+        dto.setResolved(complaintsRepo.countByStatus("Resolved"));
+        dto.setRejected(complaintsRepo.countByStatus("Rejected"));
 
         return dto;
     }

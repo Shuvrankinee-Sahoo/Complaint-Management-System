@@ -7,8 +7,11 @@ import java.util.List;
 
 @Repository
 public interface ComplaintsRepo extends JpaRepository<Complaints, Integer> {
-    List<Complaints> findByMail(String email);
+
     long countByMail(String email);
     long countByMailAndStatus(String email, String status);
     long countByStatus(String pending);
+
+    List<Complaints> findAllByOrderByDateDesc();
+    List<Complaints> findByMailOrderByDateDesc(String email);
 }

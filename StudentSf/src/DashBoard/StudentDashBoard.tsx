@@ -31,7 +31,6 @@ interface Profile {
   fullName: string;
   email: string;
   regNo: string;
-  
 }
 
 interface NewComplaint {
@@ -152,6 +151,14 @@ const StudentDashboard: React.FC = () => {
     confirm: "",
   });
 
+  // NEW: State for complaint status filter
+  const [
+    complaintStatusFilter,
+    setComplaintStatusFilter,
+  ] = useState<
+    "All" | "Pending" | "In Progress" | "Resolved" | "Rejected"
+  >("All");
+
   useEffect(() => {
     fetchStats();
     fetchComplaints();
@@ -271,9 +278,9 @@ const StudentDashboard: React.FC = () => {
     e.preventDefault();
     setOverlayMessage("Changing password...");
     if (!passwordFields.newPassword || passwordFields.newPassword !== passwordFields.confirm) {
-        alert("Passwords do not match or empty.");
-        setOverlayMessage(null);
-        return;
+      alert("Passwords do not match or empty.");
+      setOverlayMessage(null);
+      return;
     }
     try {
       const res = await fetch("http://localhost:8080/user/changePassword", {
@@ -361,7 +368,6 @@ const StudentDashboard: React.FC = () => {
               required
             />
           </div>
-          
           <div className="flex justify-end gap-4 pt-2">
             <button
               type="button"
@@ -444,7 +450,7 @@ const StudentDashboard: React.FC = () => {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r p-5 flex flex-col z-10">
         <h1 className="text-xl font-bold text-blue-700 mb-8">
-          Student  Dashboard
+          Student  Dashboard
         </h1>
         <nav className="flex flex-col gap-3">
           {["dashboard", "complaints", "add", "profile"].map((v) => (
@@ -483,7 +489,7 @@ const StudentDashboard: React.FC = () => {
 
         <div
           className={`flex-1 p-8 overflow-y-auto transition-filter duration-300 ${
-            (overlayMessage && !isLoadingOverlay) ? "blur-sm pointer-events-none" : ""
+            overlayMessage && !isLoadingOverlay ? "blur-sm pointer-events-none" : ""
           }`}
         >
           {/* Dashboard, Complaints, Add, Profile views */}
@@ -557,41 +563,78 @@ const StudentDashboard: React.FC = () => {
               <h2 className="text-2xl font-semibold mb-4 text-blue-700">
                 All Complaints
               </h2>
-              {complaints.length === 0 ? (
-                <p className="text-gray-500">No complaints found.</p>
+
+              {/* Status filter dropdown */}
+              <div className="mb-4 flex items-center justify-between">
+                <label className="font-medium text-gray-700">
+                  Filter by Status:{" "}
+                  <select
+                    value={complaintStatusFilter}
+                    onChange={(e) =>
+                      setComplaintStatusFilter(e.target.value as
+                        | "All"
+                        | "Pending"
+                        | "In Progress"
+                        | "Resolved"
+                        | "Rejected")
+                    }
+                    className="ml-2 border border-gray-300 rounded-lg p-2"
+                  >
+                    <option value="All">All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </label>
+              </div>
+
+              {complaints.filter(
+                (c) =>
+                  complaintStatusFilter === "All" || c.status === complaintStatusFilter
+              ).length === 0 ? (
+                <p className="text-gray-500">
+                  No complaints found
+                  {complaintStatusFilter !== "All" ? ` for ${complaintStatusFilter}` : ""}.
+                </p>
               ) : (
                 <div className="space-y-4">
-                  {complaints.map((c) => (
-                    <div
-                      key={c.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition"
-                    >
-                      <div className="flex justify-between">
-                        <h3 className="text-lg font-semibold">{c.title}</h3>
-                        <span
-                          className={`text-sm px-3 py-1 rounded-full ${
-                            c.status === "Pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : c.status === "Resolved"
-                              ? "bg-green-100 text-green-700"
-                              : c.status === "Rejected"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-blue-100 text-blue-700"
-                          }`}
-                        >
-                          {c.status}
-                        </span>
+                  {complaints
+                    .filter(
+                      (c) =>
+                        complaintStatusFilter === "All" || c.status === complaintStatusFilter
+                    )
+                    .map((c) => (
+                      <div
+                        key={c.id}
+                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition"
+                      >
+                        <div className="flex justify-between">
+                          <h3 className="text-lg font-semibold">{c.title}</h3>
+                          <span
+                            className={`text-sm px-3 py-1 rounded-full ${
+                              c.status === "Pending"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : c.status === "Resolved"
+                                ? "bg-green-100 text-green-700"
+                                : c.status === "Rejected"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-blue-100 text-blue-700"
+                            }`}
+                          >
+                            {c.status}
+                          </span>
+                        </div>
+                        <p className="text-gray-600">
+                          Response:{" "}
+                          {c.response && c.response.trim() ? c.response : "N/A"}
+                        </p>
+                        <p className="text-gray-600">{c.subject}</p>
+                        <p className="text-gray-500 text-sm mt-2">
+                          {c.description}
+                        </p>
                       </div>
-                      <p className="text-gray-600">
-                        Response:{" "}
-                        {c.response && c.response.trim() ? c.response : "N/A"}
-                      </p>
-                      <p className="text-gray-600">{c.subject}</p>
-                      <p className="text-gray-500 text-sm mt-2">
-                        {c.description}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
             </div>
@@ -602,7 +645,7 @@ const StudentDashboard: React.FC = () => {
               <div className="bg-white/80 backdrop-blur-md shadow-xl border border-gray-200 p-8 rounded-3xl max-w-xl w-full transition-transform hover:scale-[1.01]">
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl px-6 py-4 mb-6 shadow-md text-center">
                   <h2 className="text-3xl font-bold tracking-wide">
-                      📃 New Complaint
+                    📃 New Complaint
                   </h2>
                   <p className="text-sm text-blue-100 mt-1">
                     Tell us what’s bothering you — we’ll take care of it

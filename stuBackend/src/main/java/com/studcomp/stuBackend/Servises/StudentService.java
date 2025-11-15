@@ -52,7 +52,7 @@ public class StudentService {
     }
 
     public List<Complaints> getComplaints(String email) {
-        return complaintRepo.findByMail(email);
+        return complaintRepo.findByMailOrderByDateDesc(email);
     }
 
     public Complaints addComplaint(String email, NewComplaintDto dto) {
